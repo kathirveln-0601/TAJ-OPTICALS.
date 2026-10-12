@@ -1,8 +1,20 @@
 {
   "rewrites": [
     {
+      "source": "/static/(.*)",
+      "destination": "/static/$1"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/server.py?__url=/api/$1"
+    },
+    {
+      "source": "/uploads/(.*)",
+      "destination": "/server.py?__url=/uploads/$1"
+    },
+    {
       "source": "/(.*)",
-      "destination": "/server.py"
+      "destination": "/static/index.html"
     }
   ]
 }

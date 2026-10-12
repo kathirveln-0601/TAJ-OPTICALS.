@@ -829,8 +829,8 @@ class TajHandler(BaseHTTPRequestHandler):
     def _dispatch(self) -> None:
         ensure_schema_once()
         parsed = urllib.parse.urlsplit(self.path)
-        path = parsed.path
         query = urllib.parse.parse_qs(parsed.query)
+        path = query.pop("__url", [parsed.path])[0]
         if path.startswith("/api/"):
             self.handle_api(path, query)
             return
