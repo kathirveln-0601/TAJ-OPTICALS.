@@ -78,10 +78,14 @@ class APIError(Exception):
 
 
 def db_path() -> Path:
+    if os.environ.get("VERCEL"):
+        return Path(os.environ.get("TAJ_DB_PATH", "/tmp/data/taj-opticals.sqlite3")).expanduser().resolve()
     return Path(os.environ.get("TAJ_DB_PATH", str(DEFAULT_DB))).expanduser().resolve()
 
 
 def uploads_path() -> Path:
+    if os.environ.get("VERCEL"):
+        return Path(os.environ.get("TAJ_UPLOAD_DIR", "/tmp/uploads")).expanduser().resolve()
     return Path(os.environ.get("TAJ_UPLOAD_DIR", str(DEFAULT_UPLOADS))).expanduser().resolve()
 
 
@@ -247,6 +251,30 @@ def ensure_schema() -> None:
         for slug, title, heading, body, status in POLICY_SEED:
             conn.execute("INSERT OR IGNORE INTO policies(slug,title,heading,body,status,updated_at) VALUES(?,?,?,?,?,?)", (slug, title, heading, body, status, now))
         conn.commit()
+
+
+_schema_initialized = False
+
+
+def ensure_default_admin() -> None:
+    admin_email = os.environ.get("ADMIN_EMAIL")
+    admin_password = os.environ.get("ADMIN_PASSWORD")
+    if admin_email and admin_password:
+        try:
+            with connect_db() as conn:
+                exists = conn.execute("SELECT 1 FROM admins WHERE email=?", (admin_email,)).fetchone()
+                if not exists:
+                    create_admin_account(admin_email, admin_password)
+        except Exception:
+            pass
+
+
+def ensure_schema_once() -> None:
+    global _schema_initialized
+    if not _schema_initialized:
+        ensure_schema()
+        ensure_default_admin()
+        _schema_initialized = True
 
 
 def default_settings() -> dict[str, Any]:
@@ -799,6 +827,7 @@ class TajHandler(BaseHTTPRequestHandler):
             return session, token_hash
 
     def _dispatch(self) -> None:
+        ensure_schema_once()
         parsed = urllib.parse.urlsplit(self.path)
         path = parsed.path
         query = urllib.parse.parse_qs(parsed.query)
@@ -2121,6 +2150,12 @@ def main() -> None:
         print("Shutting down Taj Opticals server")
     finally:
         server.server_close()
+
+class handler(TajHandler):
+    pass
+
+app = handler
+
 
 if __name__ == "__main__":
     main()
