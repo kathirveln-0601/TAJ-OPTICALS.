@@ -830,7 +830,13 @@ class TajHandler(BaseHTTPRequestHandler):
         ensure_schema_once()
         parsed = urllib.parse.urlsplit(self.path)
         query = urllib.parse.parse_qs(parsed.query)
-        path = query.pop("__url", [parsed.path])[0]
+        path = query.pop("__url", [None])[0]
+        if not path:
+            header_path = self.headers.get("x-matched-path") or self.headers.get("x-vercel-matched-path") or self.headers.get("x-forwarded-uri")
+            if header_path and not header_path.startswith("/api/index") and not header_path.startswith("/server.py"):
+                path = header_path
+            else:
+                path = parsed.path
         if path.startswith("/api/"):
             self.handle_api(path, query)
             return
