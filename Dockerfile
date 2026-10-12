@@ -14,5 +14,4 @@ RUN useradd --system --uid 10001 --create-home app \
     && chown -R app:app /app /data
 USER 10001:10001
 EXPOSE 8000
-VOLUME ["/data"]
 CMD ["python3", "/app/container_entrypoint.py"]
