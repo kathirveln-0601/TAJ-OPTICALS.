@@ -895,7 +895,7 @@ class TajHandler(BaseHTTPRequestHandler):
             self.end_headers()
 
     def serve_index(self) -> None:
-        target = STATIC_DIR / "index.html"
+        target = ROOT / "index.html" if (ROOT / "index.html").exists() else (STATIC_DIR / "index.html")
         body = target.read_bytes()
         csp = "default-src 'self'; img-src 'self' data: blob: https:; media-src 'self' blob: https:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; font-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self' https://wa.me"
         self.send_bytes(body, "text/html; charset=utf-8", 200, {"Cache-Control": "no-cache", "Content-Security-Policy": csp})

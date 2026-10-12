@@ -1,20 +1,17 @@
 {
+  "cleanUrls": true,
   "rewrites": [
     {
-      "source": "/static/(.*)",
-      "destination": "/static/$1"
-    },
-    {
       "source": "/api/(.*)",
-      "destination": "/server.py?__url=/api/$1"
+      "destination": "/api/index.py"
     },
     {
       "source": "/uploads/(.*)",
-      "destination": "/server.py?__url=/uploads/$1"
+      "destination": "/api/index.py"
     },
     {
-      "source": "/(.*)",
-      "destination": "/static/index.html"
+      "source": "/((?!static/).*)",
+      "destination": "/index.html"
     }
   ]
 }
